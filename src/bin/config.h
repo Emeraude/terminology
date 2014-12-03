@@ -63,8 +63,6 @@ struct _Config
    Eina_Bool         visualize;
    Eina_Bool         urg_bell;
    Eina_Bool         multi_instance;
-   Eina_Bool         application_server;
-   Eina_Bool         application_server_restore_views;
    Eina_Bool         xterm_256color;
    Eina_Bool         erase_is_del;
    Eina_Bool         custom_geometry;
@@ -73,6 +71,7 @@ struct _Config
    Eina_Bool         mouse_over_focus;
    Eina_Bool         colors_use;
    Eina_Bool         gravatar;
+   Eina_Bool         hide_top_tabbar;
    Config_Color      colors[(4 * 12)];
    Eina_List        *keys;
 

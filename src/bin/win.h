@@ -2,20 +2,17 @@
 #define _WIN_H__ 1
 
 #include "config.h"
-
-typedef struct _Win   Win;
-typedef struct _Term  Term;
-
-
+#include "term_container.h"
 
 Eina_Bool main_term_popup_exists(const Term *term);
-void main_term_focus(Term *term);
 
 Evas_Object *main_term_evas_object_get(Term *term);
 Evas_Object *term_miniview_get(Term *term);
 void term_miniview_toggle(Term *term);
 void term_miniview_hide(Term *term);
 
+void split_horizontally(Evas_Object *win, Evas_Object *term, const char *cmd);
+void split_vertically(Evas_Object *win, Evas_Object *term, const char *cmd);
 
 Win *
 win_new(const char *name, const char *role, const char *title,
@@ -35,8 +32,7 @@ Evas_Object *win_base_get(Win *wn);
 Evas_Object *win_evas_object_get(Win *win);
 Eina_List * win_terms_get(Win *wn);
 Config *win_config_get(Win *wn);
-void win_term_swallow(Win *wn, Term *term);
-void win_add_split(Win *wn, Term *term);
+int win_term_set(Win *wn, Term *term);
 void win_sizing_handle(Win *wn);
 
 void term_next(Term *term);

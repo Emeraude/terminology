@@ -15,7 +15,6 @@
 #include "utils.h"
 #include "ipc.h"
 #include "sel.h"
-#include "app_server.h"
 #include "dbus.h"
 #include "miniview.h"
 #include "gravatar.h"
@@ -290,12 +289,9 @@ main_ipc_new(Ipc_Instance *inst)
         free(nargv);
         return;
      }
-   else
-     {
-        win_term_swallow(wn, term);
-     }
 
-   win_add_split(wn, term);
+   if (win_term_set(wn, term) < 0)
+     return;
 
    main_trans_update(config);
    main_media_update(config);
@@ -852,10 +848,6 @@ remote:
      }
 
    config = win_config_get(wn);
-#if 0
-   if (config->application_server)
-     app_server_init(&wins, config->application_server_restore_views);
-#endif
 
    term = term_new(wn, config, cmd, login_shell, cd,
                    size_w, size_h, hold);
@@ -864,12 +856,12 @@ remote:
         retval = EXIT_FAILURE;
         goto end;
      }
-   else
-     {
-        win_term_swallow(wn, term);
-     }
 
-   win_add_split(wn, term);
+   if (win_term_set(wn, term) < 0)
+     {
+        retval = EXIT_FAILURE;
+        goto end;
+     }
 
    main_trans_update(config);
    main_media_update(config);
@@ -878,7 +870,7 @@ remote:
    evas_object_show(win);
    if (startup_split)
      {
-        /* TODO: boris */
+        /* TODO: make that option work again */
 #if 0
         unsigned int i = 0;
         void *pch = NULL;
@@ -925,8 +917,6 @@ remote:
    ty_dbus_init();
 
    elm_run();
-
-   app_server_shutdown();
 
    ty_dbus_shutdown();
    config = NULL;

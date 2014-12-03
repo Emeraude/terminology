@@ -53,11 +53,10 @@ lz4/lz4.c lz4/lz4.h \
 md5/md5.c md5/md5.h \
 utf8.c utf8.h \
 win.c win.h \
+term_container.h \
 utils.c utils.h \
 dbus.c dbus.h \
 extns.c extns.h \
-app_server.c app_server.h \
-app_server_eet.c app_server_eet.h \
 gravatar.c gravatar.h \
 tty_keys.h
 
