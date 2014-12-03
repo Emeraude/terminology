@@ -236,7 +236,6 @@ _solo_split(Term_Container *tc, const char *cmd, Eina_Bool is_horizontal)
    tc_split->swallow(tc_split, split->tc2, _tabs_new(split->tc2, tc_split));
 
    DBG("split");
-   _term_focus(tm_new, EINA_FALSE);
 }
 
 static Term *
@@ -388,7 +387,7 @@ _cb_win_focus_in(void *data,
    Term_Container *tc = (Term_Container*) wn;
    Term *term;
 
-   DBG("win focus in");
+   DBG("win focus in tc:%p", tc);
 
    if (!tc->is_focused) elm_win_urgent_set(wn->win, EINA_FALSE);
    tc->is_focused = EINA_TRUE;
@@ -400,12 +399,10 @@ _cb_win_focus_in(void *data,
    if ( wn->config->mouse_over_focus )
      {
         Term *term_mouse;
-        Term_Container *tc_win;
         Evas_Coord mx, my;
 
-        tc_win = (Term_Container*) wn;
         evas_pointer_canvas_xy_get(evas_object_evas_get(wn->win), &mx, &my);
-        term_mouse = tc_win->find_term_at_coords(tc_win, mx, my);
+        term_mouse = tc->find_term_at_coords(tc, mx, my);
         if ((term_mouse) && (term_mouse != term))
           {
              if (term)
@@ -421,6 +418,8 @@ _cb_win_focus_in(void *data,
 
    if (term)
      _term_focus(term, EINA_TRUE);
+   else
+     tc->focus(tc, tc);
 }
 
 static void
@@ -790,7 +789,16 @@ _win_focus(Term_Container *tc, Term_Container *child EINA_UNUSED)
    assert (tc->type == TERM_CONTAINER_TYPE_WIN);
 
    wn = (Win*) tc;
-   DBG("focus from child");
+
+   if (child != wn->child)
+     {
+        DBG("focus from parent");
+        wn->child->focus(wn->child, tc);
+     }
+   else
+     {
+        DBG("focus from child");
+     }
 
    if (!tc->is_focused) elm_win_urgent_set(wn->win, EINA_FALSE);
    tc->is_focused = EINA_TRUE;
@@ -940,7 +948,6 @@ _win_focused_term_get(Win *wn)
 
    EINA_LIST_FOREACH(wn->terms, l, term)
      {
-        DBG("term:%p", term);
         if (_term_is_focused(term)) return term;
      }
    return NULL;
@@ -1218,7 +1225,7 @@ _split_unfocus(Term_Container *tc, Term_Container *relative EINA_UNUSED)
    if (!tc->is_focused)
      return;
 
-   tc->is_focused = EINA_TRUE;
+   tc->is_focused = EINA_FALSE;
 
    tc->parent->unfocus(tc->parent, tc);
 }
@@ -1984,7 +1991,8 @@ _tab_selected(void *data,
         elm_toolbar_item_selected_set(tabs->current->elm_item, EINA_FALSE);
      }
    tabs->current = tab_item;
-   tab_item->tc->focus(tab_item->tc, tc);
+   if (_win_is_focused(tc->wn))
+     tab_item->tc->focus(tab_item->tc, tc);
 }
 
 static Tab_Item*
@@ -2041,7 +2049,9 @@ _tab_new_cb(void *data,
 
    tab_item_new(tabs, tc_new);
 
-   tc_new->focus(tc_new, tc_parent);
+   DBG("new -> focus %p tm:%p", tc_new, tm_new);
+   if (_win_is_focused(tc_parent->wn))
+     tc_new->focus(tc_new, tc_parent);
 
    if (!tabs->tabbar_shown)
      edje_object_signal_emit(tabs->base, "tabcount,on", "terminology");
@@ -2431,6 +2441,7 @@ _term_is_focused(Term *term)
      return EINA_FALSE;
 
    tc = term->container;
+   DBG("tc:%p is_focused:%d", tc, tc->is_focused);
    return tc->is_focused;
 }
 
